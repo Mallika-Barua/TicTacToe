@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { HelloWave } from '@/components/HelloWave';
 import { useSession } from '@/Share/ctx';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +41,7 @@ export default function LoginScreen() {
       }>
       <ThemedView style={styles.container}>
           <ThemedText type="title" style={styles.title}>
-            Login
+            Register
           </ThemedText>
           <TextInput
             style={styles.input}
@@ -61,12 +61,22 @@ export default function LoginScreen() {
             secureTextEntry
             autoCapitalize="none"
           />
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Sign In</Text>
-          </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Re Password"
+            placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
           <TouchableOpacity style={styles.button} 
             onPress={() => {router.replace('/sign-up');}}>
             <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} 
+            onPress={() => {router.replace('/sign-in');}}>
+            <Text style={styles.buttonText}>Already Sign Up! Sign In</Text>
           </TouchableOpacity>
       </ThemedView>
     </ParallaxScrollView>

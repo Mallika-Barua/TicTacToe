@@ -1,5 +1,5 @@
 import { Text } from 'react-native';
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Slot } from 'expo-router';
 
 import { useSession } from '../../Share/ctx';
 
@@ -12,5 +12,5 @@ export default function AppLayout() {
   if (!session) {
     return <Redirect href="/sign-in" />;
   }
-  return <Stack />;
+  return <Slot />;
 }
