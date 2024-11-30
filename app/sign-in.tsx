@@ -11,8 +11,8 @@ import { useSession } from '@/Share/ctx';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('Mallika');
+  const [password, setPassword] = useState('Mallika');
   const [plateform, setPlateform] = useState(Platform.OS);
   const { signIn } = useSession();
   

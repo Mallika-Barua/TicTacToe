@@ -13,13 +13,21 @@ export default function RegisterScreen() {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [plateform, setPlateform] = useState(Platform.OS);
-  const { signIn } = useSession();
+  const [rePassword, setRePassword] = useState('');
+  const [plateform] = useState(Platform.OS);
   
   const handleLogin = () => {
     if (email && password) {
-      signIn();
-      router.replace('/');
+      if(password == rePassword) {
+        router.replace('/sign-in');
+      } else {
+        if(plateform == "web") {
+          alert("Password is not same.");
+        }
+        else {
+          Alert.alert('Error', 'Password is not same.');
+        }
+      }
     } else {
       if(plateform == "web") {
         alert("Please fill out both fields.");
@@ -65,13 +73,13 @@ export default function RegisterScreen() {
             style={styles.input}
             placeholder="Re Password"
             placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
+            value={rePassword}
+            onChangeText={setRePassword}
             secureTextEntry
             autoCapitalize="none"
           />
           <TouchableOpacity style={styles.button} 
-            onPress={() => {router.replace('/sign-up');}}>
+            onPress={handleLogin}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} 
