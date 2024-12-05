@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Button, TouchableOpacity, Text, Alert } from 'react-native';
+import { View, StyleSheet, Button, TouchableOpacity, Text, Alert, FlatList } from 'react-native';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
 import { useSession } from '@/Share/ctx';
+import { setStorageItemAsync } from '@/Share/useStorageState';
 
 export default function App() {
   const [recording, setRecording] = useState<Audio.Recording | undefined>();
+  const [recordings, setRecordings] = useState<string[]>([]); // Ensure this is initialized as an empty array
   const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [sound, setSound] = useState<Audio.Sound | undefined>();
   const { signOut } = useSession();
 
-  // Play the sound
-  async function playSound() {
+  // Play a specific sound
+  async function playSound(uri: string) {
     try {
-      console.log('Loading sound...');
-      const { sound } = await Audio.Sound.createAsync(require('./assets/Hello.mp3'));
+      console.log('Loading sound from URI:', uri);
+      const { sound } = await Audio.Sound.createAsync({ uri });
       setSound(sound);
 
       console.log('Playing sound...');
@@ -65,21 +67,20 @@ export default function App() {
       if (recording) {
         console.log('Stopping recording...');
         await recording.stopAndUnloadAsync();
-  
+
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: false,
         });
-  
-        const uri = recording.getURI(); // This is the recorded file URI
+
+        const uri = recording.getURI(); // Get the URI of the recorded file
         console.log('Recording stopped and stored at:', uri);
-  
-        // Optionally, alert the user
-        alert(`Audio saved at: ${uri}. Conversion may be required.`);
-  
-        // Here you can send the URI to a backend server for MP3 conversion
-        // or use a library like react-native-ffmpeg for local conversion (requires bare workflow).
-  
+
+        // Add the new URI to the recordings list
+        setRecordings((prev) => [...prev, uri]);
+
         setRecording(undefined); // Clear recording state
+        saveRecordings(recordings);
+        console.log('recordings',recordings);
       } else {
         console.log('No recording to stop');
       }
@@ -89,15 +90,32 @@ export default function App() {
     }
   }
 
+  async function saveRecordings(recordings : string[]) {
+    try {
+      await localStorage.setItem('recording', recordings.join(',')); // Save as comma-separated values
+      console.log('recordings.',recordings);
+      console.log('Recordings saved successfully.');
+    } catch (error) {
+      console.error('Failed to save recordings:', error);
+    }
+  }
+
+  async function loadRecordings() {
+    try {
+      const recordingsString = await localStorage.getItem('recording');
+      if (recordingsString) {
+        setRecordings(recordingsString.split(',')); // Convert back to an array
+        console.log('Recordings loaded:', recordingsString.split(','));
+      }
+    } catch (error) {
+      console.error('Failed to load recordings:', error);
+    }
+  }
+
   // Cleanup resources
   useEffect(() => {
-    return sound
-      ? () => {
-          console.log('Unloading sound...');
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
+    loadRecordings();
+  },[]);
 
   return (
     <View style={styles.container}>
@@ -107,8 +125,17 @@ export default function App() {
         onPress={recording ? stopRecording : startRecording}
       />
 
-      {/* Play Sound Button */}
-      <Button title="Play Sound" onPress={playSound} />
+      {/* List of Recorded Files */}
+      <FlatList
+        data={recordings || []} // Safeguard: Use an empty array if recordings is null
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <View style={styles.listItem}>
+            <Text style={styles.listText}>Recording {index + 1}</Text>
+            <Button title="Play" onPress={() => playSound(item)} />
+          </View>
+        )}
+      />
 
       {/* Navigation Button */}
       <TouchableOpacity
@@ -118,7 +145,7 @@ export default function App() {
           router.replace('/sign-in');
         }}
       >
-        <Text style={styles.buttonText}>Already Signed Up? Sign In</Text>
+        <Text style={styles.buttonText}>Sign Out</Text>
       </TouchableOpacity>
     </View>
   );
@@ -145,5 +172,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    width: '100%',
+  },
+  listText: {
+    fontSize: 16,
   },
 });

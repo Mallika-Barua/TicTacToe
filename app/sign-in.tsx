@@ -18,7 +18,7 @@ export default function LoginScreen() {
   
   const handleLogin = () => {
     if (email && password) {
-      signIn();
+      signIn(email,password);
       router.replace('/');
     } else {
       if(plateform == "web") {
